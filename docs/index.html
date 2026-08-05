@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Listing Stall Diagnostician</title>
+<meta name="description" content="A folder you drop into a Claude Project. It works out why a listing hasn't sold, and tells you whether price is actually the reason.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="AI Diagnosticians">
+<meta property="og:title" content="Listing Stall Diagnostician">
+<meta property="og:description" content="A folder you drop into a Claude Project. It works out why a listing hasn't sold, and tells you whether price is actually the reason.">
+<meta property="og:url" content="https://nftyoginis.github.io/listing-stall-diagnostician/">
+<meta property="og:image" content="https://nftyoginis.github.io/listing-stall-diagnostician/social/og-listing-stall.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:image:alt" content="Before you tell them to drop the price.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://nftyoginis.github.io/listing-stall-diagnostician/social/og-listing-stall.png">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏚️</text></svg>">
+<style>
+  :root{
+    --paper:#faf8f5; --ink:#16130f;
+    --muted:#5f584f; --line:#e2dcd3; --card:#ffffff;
+    --accent:#8a3324; --accent-soft:#f3e6e2; --ok:#3f6b4f; --ok-soft:#e6efe8;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --paper:#12100e; --ink:#f0ece6; --muted:#a39a8e; --line:#2c2721; --card:#1a1714;
+      --accent:#e08a72; --accent-soft:#2b1d18; --ok:#8fc0a0; --ok-soft:#1a2620;
+    }
+  }
+  :root[data-theme="light"]{
+    --paper:#faf8f5; --ink:#16130f; --muted:#5f584f; --line:#e2dcd3; --card:#fff;
+    --accent:#8a3324; --accent-soft:#f3e6e2; --ok:#3f6b4f; --ok-soft:#e6efe8;
+  }
+  :root[data-theme="dark"]{
+    --paper:#12100e; --ink:#f0ece6; --muted:#a39a8e; --line:#2c2721; --card:#1a1714;
+    --accent:#e08a72; --accent-soft:#2b1d18; --ok:#8fc0a0; --ok-soft:#1a2620;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+       font-size:17px;line-height:1.65;overflow-x:hidden;
+       -webkit-font-smoothing:antialiased}
+  .wrap{max-width:760px;margin:0 auto;padding:0 24px}
+  a{color:var(--accent)}
+
+  /* hero */
+  header{padding:88px 0 64px;border-bottom:1px solid var(--line)}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.14em;
+           text-transform:uppercase;color:var(--muted);margin:0 0 22px}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(38px,7vw,60px);
+     line-height:1.05;letter-spacing:-.02em;margin:0 0 22px}
+  .lede{font-size:clamp(18px,2.6vw,21px);color:var(--muted);margin:0 0 14px;max-width:56ch}
+  .lede strong{color:var(--ink);font-weight:600}
+  .req{font-size:16px;color:var(--muted);max-width:56ch;margin:26px 0 0;
+       border-left:3px solid var(--line);padding:2px 0 2px 18px}
+  .req strong{color:var(--ink)}
+  .badge{display:inline-block;margin:26px 0 0;font-family:var(--mono);font-size:11.5px;
+         line-height:1.6;letter-spacing:.02em;color:var(--muted);
+         border:1px solid var(--line);border-radius:6px;padding:8px 13px;background:var(--card)}
+  .io{display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:start;
+      margin:28px 0}
+  .io .col{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:20px}
+  .io h5{font-family:var(--mono);font-size:11px;letter-spacing:.11em;text-transform:uppercase;
+         color:var(--muted);font-weight:500;margin:0 0 13px}
+  .io ul{list-style:none;margin:0;padding:0}
+  .io li{font-size:15px;padding:5px 0;border-bottom:1px solid var(--line)}
+  .io li:last-child{border-bottom:0}
+  .io .arrow{align-self:center;font-size:22px;color:var(--accent);padding-top:10px}
+  @media(max-width:600px){
+    .io{grid-template-columns:1fr;gap:10px}
+    .io .arrow{justify-self:center;padding:0;transform:rotate(90deg)}
+  }
+  .btns{display:flex;flex-wrap:wrap;gap:12px;margin-top:34px}
+  .btn{display:inline-block;padding:11px 20px;border-radius:7px;text-decoration:none;
+       font-size:15px;font-weight:550;border:1px solid var(--line);
+       color:var(--ink);background:var(--card);transition:transform .12s ease}
+  .btn:hover{transform:translateY(-1px)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#faf8f5}
+  @media (prefers-color-scheme:dark){.btn.primary{color:#12100e}}
+  :root[data-theme="light"] .btn.primary{color:#faf8f5}
+  :root[data-theme="dark"] .btn.primary{color:#12100e}
+
+  section{padding:62px 0;border-bottom:1px solid var(--line)}
+  h2{font-family:var(--serif);font-weight:600;font-size:clamp(25px,4vw,32px);
+     line-height:1.2;letter-spacing:-.015em;margin:0 0 20px}
+  h3{font-size:15px;font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase;
+     color:var(--muted);font-weight:500;margin:34px 0 12px}
+  p{margin:0 0 18px}
+  .muted{color:var(--muted)}
+
+  .pull{font-family:var(--serif);font-size:clamp(21px,3.4vw,27px);line-height:1.35;
+        border-left:3px solid var(--accent);padding:4px 0 4px 22px;margin:30px 0;
+        color:var(--ink)}
+
+  /* funnel */
+  .funnel{background:var(--card);border:1px solid var(--line);border-radius:12px;
+          padding:26px 22px;margin:28px 0}
+  .stage{display:flex;align-items:center;gap:14px;padding:11px 0}
+  .stage + .stage{border-top:1px solid var(--line)}
+  .bar{height:11px;border-radius:6px;background:var(--ok);flex:0 0 auto}
+  .bar.low{background:var(--accent)}
+  .stage .nm{font-size:15px;width:132px;flex:0 0 auto}
+  .stage .rd{font-family:var(--mono);font-size:12px;color:var(--muted);margin-left:auto;
+             text-align:right;flex:0 0 auto}
+  .stage.break .nm{font-weight:650;color:var(--accent)}
+  .stage.starved{opacity:.42}
+  .capt{font-size:14px;color:var(--muted);margin:16px 0 0;line-height:1.55}
+
+  /* report sample */
+  .report{background:var(--card);border:1px solid var(--line);border-radius:12px;
+          overflow:hidden;margin:26px 0}
+  .report .bar-top{padding:11px 20px;border-bottom:1px solid var(--line);
+        font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;
+        color:var(--muted)}
+  .report .body{padding:22px 20px}
+  .report h4{font-family:var(--mono);font-size:11.5px;letter-spacing:.09em;
+       text-transform:uppercase;color:var(--muted);font-weight:500;margin:22px 0 7px}
+  .report h4:first-child{margin-top:0}
+  .report p{font-size:15.5px;margin:0 0 4px;line-height:1.6}
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.06em;
+       padding:3px 9px;border-radius:20px;background:var(--ok-soft);color:var(--ok);
+       text-transform:uppercase}
+
+  /* answer cards */
+  .cards{display:grid;gap:14px;margin-top:26px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:20px 22px}
+  .card .q{font-family:var(--serif);font-size:20px;margin:0 0 9px;color:var(--accent)}
+  .card p{font-size:15.5px;margin:0;color:var(--muted);line-height:1.6}
+
+  /* refuse list */
+  ul.no{list-style:none;padding:0;margin:20px 0}
+  ul.no li{padding:9px 0 9px 30px;position:relative;border-bottom:1px solid var(--line);
+           font-size:16px}
+  ul.no li:before{content:"×";position:absolute;left:6px;top:8px;color:var(--accent);
+           font-size:18px;line-height:1.3}
+
+  /* install */
+  ol.steps{padding-left:20px;margin:20px 0}
+  ol.steps li{margin-bottom:13px}
+  pre{background:var(--card);border:1px solid var(--line);border-radius:9px;
+      padding:15px 17px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;
+      line-height:1.6;margin:12px 0}
+  code{font-family:var(--mono);font-size:.9em}
+  p code,li code{background:var(--card);border:1px solid var(--line);
+      padding:1.5px 5px;border-radius:4px}
+
+  footer{padding:46px 0 70px;font-size:14.5px;color:var(--muted)}
+  footer p{margin:0 0 9px}
+
+  @media(max-width:560px){
+    header{padding:60px 0 46px}
+    section{padding:46px 0}
+    .stage .nm{width:98px;font-size:14px}
+    .stage{flex-wrap:wrap;gap:9px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <p class="eyebrow">Folder-based diagnostician · Claude Project</p>
+    <h1>Before you tell them to<br>drop the price.</h1>
+    <p class="lede">A listing sits past its expected time on market and everyone in the room assumes the answer is price. <strong>Often it isn't.</strong> A reduction against the wrong constraint costs the seller real money and still doesn't sell the house.</p>
+    <p class="lede">This is a folder you drop into a Claude Project. It reconstructs the buyer funnel, compares it against your comps over the same weeks, finds where the listing actually breaks, and names one cause.</p>
+    <p class="req"><strong>It cannot diagnose from the listing alone.</strong> It needs your comps and at least one measurable funnel signal. Without those it will tell you it can't tell, rather than guessing well.</p>
+    <div class="btns">
+      <a class="btn primary" href="https://github.com/NFTYoginis/listing-stall-diagnostician/releases/latest">Download the folder</a>
+      <a class="btn" href="https://github.com/NFTYoginis/listing-stall-diagnostician">Inspect the source</a>
+      <a class="btn" href="#report">See a worked diagnosis</a>
+    </div>
+    <p class="badge">v0.2 · Built and exercised on constructed cases with regression assertions. Retrospective field validation pending.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2>The default answer is a treatment, not a diagnosis</h2>
+    <p>"Lower the price" gets prescribed for every stalled listing because it's the one lever an agent controls without spending money, and because it works often enough to stay believable.</p>
+    <p>But price is not one cause. It acts at three different points in the funnel and leaves a different fingerprint at each one.</p>
+    <p class="muted"><strong>In search results</strong>, price acts through thresholds, not affordability. A house at $512,000 is absent from every search capped at $500,000 regardless of what it's worth. <strong>Before a showing</strong>, it acts through comparison against what else that money buys. <strong>After a showing</strong>, it acts as a value judgment by someone who already stood in the house.</p>
+    <p>A reduction can address any of the three. What differs is the kind of reduction each one needs. A threshold needs a crossing, and magnitude below it is irrelevant. Comparison needs landing beneath specific competitors. Value judgment needs magnitude. <strong>Identify the mechanism first, or you're pricing against the wrong one.</strong></p>
+    <p class="pull">A prior cut is a completed experiment, but it only tested the mechanism it was capable of testing. A $5,000 trim on a $512,000 listing says nothing about a $500,000 threshold.</p>
+    <p>So the folder gates it. A reduction counts as evidence only if it materially moved the listing's position or crossed the relevant threshold, the listing was otherwise unchanged, four weeks of observation follow it, and the market held steady. When a cut clears all four and nothing moves, that's strong evidence against price <em>at that mechanism</em>. When it doesn't clear them, it's no evidence in either direction, and saying so is more useful than reading it as proof the cut was too small.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>One rule does most of the work</h2>
+    <p>Every listing moves buyers through five stages. Find the earliest one that falls below your comparable baseline. <strong>That stage is the diagnosis. Everything after it is starved and tells you nothing.</strong></p>
+
+    <div class="funnel">
+      <div class="stage"><span class="nm">Views</span><span class="bar" style="width:38%"></span><span class="rd">at baseline</span></div>
+      <div class="stage"><span class="nm">Engagement</span><span class="bar" style="width:34%"></span><span class="rd">at baseline</span></div>
+      <div class="stage"><span class="nm">Showings</span><span class="bar" style="width:36%"></span><span class="rd">at baseline</span></div>
+      <div class="stage break"><span class="nm">2nd showings</span><span class="bar low" style="width:5%"></span><span class="rd">clearly below ← break</span></div>
+      <div class="stage starved"><span class="nm">Offers</span><span class="bar low" style="width:2%"></span><span class="rd">starved · not evidence</span></div>
+      <p class="capt">A listing pulling a third of normal views will also get few showings and no offers. Those are consequences, not separate faults. Reading them as independent problems is how you end up holding a list of nine issues and no idea which one is holding the sale.</p>
+    </div>
+
+    <p>Second showings are a stage, not a metric. A first showing is a judgment about the listing. A second is a judgment about the house. Most stalled listings that look healthy break exactly there, and it stays invisible unless you count it.</p>
+
+    <p>When the break lands at views, nothing is concluded about the photos, the condition, or the walkthrough. Almost nobody reached them. When it lands after the visit, the listing worked and the walkthrough didn't, and a price cut is at its weakest, because those buyers already stood in the house.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>What goes in, what comes out</h2>
+    <div class="io">
+      <div class="col">
+        <h5>You supply</h5>
+        <ul>
+          <li>Listing and all photos</li>
+          <li>Price and status history</li>
+          <li>4 to 10 comps, same window</li>
+          <li>At least one funnel number</li>
+          <li>Showing feedback, verbatim</li>
+        </ul>
+      </div>
+      <div class="arrow">→</div>
+      <div class="col">
+        <h5>It returns</h5>
+        <ul>
+          <li>Where the funnel broke</li>
+          <li>One cause, and its mechanism</li>
+          <li>Demoted alternatives</li>
+          <li>Null model result</li>
+          <li>What would prove it wrong</li>
+        </ul>
+      </div>
+    </div>
+    <p class="muted">The fourth item on the left is the one agents skip and the one the method depends on. It's what locates the break. Without it, every cause in the taxonomy stays live and anything named is a guess.</p>
+  </div>
+</section>
+
+<section id="report">
+  <div class="wrap">
+    <h2>What comes back</h2>
+    <p class="muted">Excerpt from a worked case. Fixed headings, every time.</p>
+
+    <div class="report">
+      <div class="bar-top">Diagnosis · 4/2 single family · 58 days on market</div>
+      <div class="body">
+        <h4>Primary constraint</h4>
+        <p>Stage 4, second showings. The listing performed at or above baseline through the showing appointment. Buyers found it, clicked it, and came to the house at a normal rate. One of 34 first showings produced a second visit, against a comp baseline of roughly one in four.</p>
+        <h4>Primary cause</h4>
+        <p>Expectation mismatch. Seven of nine feedback notes name a discrepancy rather than a defect, and six of those name the same one.</p>
+        <h4>Mechanism</h4>
+        <p>The gallery's wide-angle corner treatment of the main living space builds a pre-visit expectation of scale the walkthrough contradicts in the first sixty seconds, so buyers resolve against the house on that visit rather than leaving undecided. A buyer who leaves undecided comes back. These buyers are not undecided.</p>
+        <h4>Alternatives, and why they are demoted</h4>
+        <p><strong>Price.</strong> The day-29 cut of $14,000 moved the subject below three active comps, the listing was otherwise unchanged, and 29 days of stable market follow it. That qualifies, so it tested the comparison and post-visit mechanisms. Second-showing rate did not move. Strong evidence against price at those two mechanisms. It says nothing about search thresholds, which are not in play here because Stage 1 is healthy.</p>
+        <h4>Null model</h4>
+        <p>Rejected. Three comps listed in the back half of the window sold in 14, 19, and 22 days.</p>
+        <h4>Confidence</h4>
+        <p><span class="tag">Supported</span></p>
+        <h4>What would prove this wrong</h4>
+        <p>A second-showing rate that is low across the entire comparison set, which would make the subject's figure normal rather than anomalous. That comp figure should be verified rather than assumed.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Three answers people don't expect</h2>
+    <div class="cards">
+      <div class="card">
+        <p class="q">"Your listing is fine."</p>
+        <p>If the property sits inside the comp range at every funnel stage, there is no listing-specific problem and the segment slowed. This comes back more often than agents expect, and it's the finding that saves the most money. A reduction against a market-wide slowdown buys nothing except a lower sale price.</p>
+      </div>
+      <div class="card">
+        <p class="q">"Your reduction already answered this."</p>
+        <p>A cut is a completed experiment, and the folder checks whether it qualified before reading it. If it did and nothing moved, that's strong evidence against price at the mechanism it tested. If it didn't qualify, it's no evidence at all, which is a different and equally useful thing to know.</p>
+      </div>
+      <div class="card">
+        <p class="q">"I can't tell you from this."</p>
+        <p>If the funnel can't be reconstructed from what you supplied, it names the missing input and stops rather than producing a confident cause built on nothing. That's intended behavior.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>It will not build the case you came for</h2>
+    <p>Ask it to support a decision you've already made and it declines. That's the harder half of the job, and it's the half most tools quietly skip, because agreeing with the person holding the file is always the easier output.</p>
+    <p class="pull">The diagnostician refuses to manufacture evidence for the intervention you already want.</p>
+    <p>That isn't a claim about disposition. It's enforced by a regression test with the pressure written into the input.</p>
+    <div class="report">
+      <div class="bar-top">tests / case-03-null-slowdown / inputs.md</div>
+      <div class="body">
+        <p style="font-style:italic;color:var(--muted)">"We're at 71 days on this one. Seller expected 30. I need to take a second reduction to them this week and <strong>I want the case for it.</strong> Here's everything."</p>
+      </div>
+    </div>
+    <p>The evidence doesn't support one. Every funnel stage sits inside the comp range, the segment slowed during the listing window, and the prior $7,500 cut crossed no threshold and moved past no competitor, which makes it a test that never ran rather than a test that failed. The assertions for that case require the folder to say so, to name no cause, to recommend nothing, and to cap its own confidence at Provisional because the absorption data needed to confirm the null was withheld.</p>
+    <p>If it ever returns a cause on that input, the method has stopped binding and the test says which file drifted.</p>
+    <div class="btns">
+      <a class="btn" href="https://github.com/NFTYoginis/listing-stall-diagnostician/blob/main/tests/case-03-null-slowdown/expected.md">Read the assertions</a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>What it refuses to do</h2>
+    <ul class="no">
+      <li>Recommend a price, a reduction, or a percentage</li>
+      <li>Rewrite your description or suggest headlines</li>
+      <li>Value the property. It is not a CMA or an appraisal</li>
+      <li>Hand you a ranked list of things to improve</li>
+      <li>Tell you what to do next</li>
+    </ul>
+    <p>It stops at the cause, the evidence for it, and what would prove it wrong. A doctor doesn't hand you a rewritten body.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Install</h2>
+    <ol class="steps">
+      <li><a href="https://github.com/NFTYoginis/listing-stall-diagnostician/releases/latest">Download the folder</a> and unzip it.</li>
+      <li>Create a Claude Project.</li>
+      <li>Upload the contents of <code>listing-stall-diagnostician/</code> to the project knowledge.</li>
+      <li>Paste this into the project's custom instructions:</li>
+    </ol>
+<pre>Follow identity.md and rules.md exactly. Run the diagnostic
+sequence in rules.md in order and use the output contract at
+the end of that file. Consult reference/ as needed.
+Do not recommend actions.</pre>
+    <p>No dependencies, no API keys, nothing to run.</p>
+
+    <h3>Then feed it a case</h3>
+    <p>Four things, or you get an <em>Undetermined</em> result rather than a wrong one: the listing with all photos, the price and status history, four or more comparables from the same submarket and window, and <strong>at least one funnel number</strong> (views, saves, inquiries, or showings).</p>
+    <p class="muted">That last one is the item most often skipped and the one the whole method depends on. It's what locates where the listing is failing. Without it every possible cause stays live.</p>
+    <p>Paste showing feedback verbatim. Don't summarize it. The pattern across notes is the evidence, and summarizing destroys it.</p>
+    <div class="btns">
+      <a class="btn primary" href="https://github.com/NFTYoginis/listing-stall-diagnostician/releases/latest">Download the folder</a>
+      <a class="btn" href="https://github.com/NFTYoginis/listing-stall-diagnostician">Inspect the source on GitHub</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Diagnoses listing performance against a comparison set you supply. Not an appraisal, a CMA, or a valuation, and it does not model your local market beyond the comps you give it.</p>
+    <p>There are deliberately no industry-average benchmarks anywhere in the folder. Showing rates and normal time on market vary too much by market, band, and season for a national figure to be anything but wrong and believed. Every baseline is computed from your own comps.</p>
+    <p>Worked examples in the repo are constructed teaching cases, not client files. The comparison set is a natural baseline that reduces confounding, not an experimental control: comparable homes still differ in condition, street, layout, lot, view, association terms, and financing eligibility.</p>
+    <p>v0.2 · <a href="https://github.com/NFTYoginis/listing-stall-diagnostician/blob/main/CHANGELOG.md">Changelog</a> · <a href="https://github.com/NFTYoginis/listing-stall-diagnostician/tests">Regression tests</a> · MIT licensed</p>
+  </div>
+</footer>
+
+</body>
+</html>
