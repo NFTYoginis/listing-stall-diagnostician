@@ -65,8 +65,14 @@ survives. Say so if it does not.
 
 Compare the subject's days on market against the comparison set's distribution.
 
-- Subject DOM inside the comp range → **no failure demonstrated.** Go to Step 5 (null),
-  write the null report, stop.
+- Subject DOM inside the comp range → **no failure demonstrated.** The null is your likely
+  finding.
+
+  **Do not stop here.** This screen is coarse. The output contract requires a funnel
+  reconstruction and a demoted-alternatives section, and neither can be written from this screen
+  alone — so run Steps 2 through 6 regardless, and let the null be what the funnel confirms rather
+  than what the screen asserted. A screen that terminates cannot be corrected by anything
+  downstream of it, which is the whole reason the downstream exists.
 - Subject DOM at or beyond the top of the comp range → a real failure. Continue.
 - Comp set DOM has also climbed relative to prior periods → hold this. It is the
   strongest null signal and you will test it properly at Step 5.
