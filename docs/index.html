@@ -327,7 +327,7 @@
     <ol class="steps">
       <li><a href="https://github.com/NFTYoginis/listing-stall-diagnostician/releases/latest">Download the folder</a> and unzip it.</li>
       <li>Create a Claude Project.</li>
-      <li>Upload the contents of <code>listing-stall-diagnostician/</code> to the project knowledge.</li>
+      <li>Upload everything in that folder <strong>except <code>tests/</code></strong> to the project knowledge. The keys the regression cases are scored against live in <code>tests/</code>, and a diagnostician that can read its own expected outputs is not being tested by them.</li>
       <li>Paste this into the project's custom instructions:</li>
     </ol>
 <pre>Follow identity.md and rules.md exactly. Run the diagnostic
