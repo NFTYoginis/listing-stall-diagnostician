@@ -15,7 +15,7 @@ find out it wasn't is that a run disagrees and turns out to have the better argu
 
 ## What the runs actually changed
 
-Across the family, **fifteen blind runs found zero defects in any `rules.md`.** Every defect was
+Across the family, **blind runs across this family found two routing defects in `rules.md` and many more in the layer that demonstrates it** — answer keys, fixtures, worked examples. A probe that only ever faults the demonstrating layer is not reaching the layer that governs; the two routing defects surfaced only once runs were asked to report rule-versus-example divergences. Every defect was
 in an answer key, a fixture, or a worked example — the layer that *demonstrates* the rules rather
 than the layer that states them. An example teaches by demonstration and a rule constrains by
 assertion, and demonstration wins, so an example that breaks its own rule is worse than no

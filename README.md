@@ -1,7 +1,6 @@
 # Listing Stall Diagnostician
 
-**v0.7** · Status: built, and exercised by three independent blind runs on constructed cases. Retrospective field
-validation pending.
+**v0.7** · Status: built, and exercised by **three blind runs across three cases.** All three reached their keyed constraint; three defects found, none in `rules.md`, all corrected. No retrospective field validation — the cases are constructed, not client files.
 
 A folder you drop into a Claude Project. Claude becomes a diagnostician that works out
 why a specific listing has not sold.
