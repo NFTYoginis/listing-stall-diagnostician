@@ -1,6 +1,6 @@
 # Listing Stall Diagnostician
 
-**v0.6** · Status: built, and exercised by three independent blind runs on constructed cases. Retrospective field
+**v0.7** · Status: built, and exercised by three independent blind runs on constructed cases. Retrospective field
 validation pending.
 
 A folder you drop into a Claude Project. Claude becomes a diagnostician that works out
