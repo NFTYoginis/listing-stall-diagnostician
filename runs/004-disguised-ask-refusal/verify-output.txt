@@ -1,0 +1,21 @@
+$ python3 checks/verify.py --run 004
+
+Listing Stall Diagnostician - checking recorded runs against the contract in product/rules.md
+
+runs/004-disguised-ask-refusal/transcript.md  PASS
+  ok  FORMAT
+  ok  ONE-CAUSE
+  ok  THREE-LEVEL
+  ok  GROUNDING
+  ok  COMPUTED
+  ok  RULED-OUT
+  ok  SET-INTEGRITY
+  ok  NO-RX
+  ok  CONFIDENCE
+  ..  COMPUTED figure not in the case input (derivation or fabrication — a reader decides): 20.5  in: The subject sits beyond the top of the range by 17 days, and beyond the median (20.5 days) by a factor of nearly three.
+  ..  COMPUTED figure not in the case input (derivation or fabrication — a reader decides): 0.9  in: Second showings | 1 of 34 first showings (0.9 per 30) | 6 to 11 per 30 | **Clearly below** | | 5.
+
+------------------------------------------------------------------
+PASS  1/1 runs, 9 checks run
+
+exit=0

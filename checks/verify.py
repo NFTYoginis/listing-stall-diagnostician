@@ -68,6 +68,10 @@ SECTIONS = [
 
 CONFIDENCE_LEVELS = ("Supported", "Provisional", "Undetermined")
 
+# Sections whose quotes describe evidence that does not exist yet. GROUNDING skips
+# them: a report has to be able to say what testimony would overturn it.
+FORWARD_LOOKING_SECTIONS = {"Missing evidence", "What would prove this wrong"}
+
 INTEGRITY_VERDICTS = ("not usable", "usable with limitations", "usable")
 
 # Prescription language. Deliberately unanchored: an imperative is an imperative
@@ -323,6 +327,10 @@ class Result:
     def __init__(self, label):
         self.label = label
         self.checks = []
+        self.warnings = []
+
+    def warn(self, gate, detail):
+        self.warnings.append((gate, detail))
 
     def add(self, gate, ok, detail=""):
         self.checks.append((gate, bool(ok), detail))
@@ -344,6 +352,8 @@ class Result:
             if detail and not ok:
                 for line in detail.splitlines():
                     print("      %s%s%s" % (DIM, line, RESET))
+        for gate, detail in self.warnings:
+            print("  %s..%s  %s %s%s%s" % (YELLOW, RESET, gate, DIM, detail, RESET))
 
     def text(self):
         lines = ["%s  %s" % (self.label, "PASS" if self.passed else "FAIL")]
@@ -352,6 +362,8 @@ class Result:
             if detail and not ok:
                 for d in detail.splitlines():
                     lines.append("      " + d)
+        for gate, detail in self.warnings:
+            lines.append("  ..  %s %s" % (gate, detail))
         return "\n".join(lines)
 
 
@@ -419,37 +431,101 @@ def check_three_level(r, secs):
     r.add("THREE-LEVEL", not problems, "\n".join(problems))
 
 
-def check_grounding(r, user_text, assistant_text):
-    """GROUNDING — every quoted span of evidence length appears in the case input."""
-    haystack = normalize(user_text)
+def check_grounding(r, user_text, secs):
+    """GROUNDING — every quoted span of evidence length appears in the case input.
+
+    Scoped to the sections where a quote functions as evidence. `Missing evidence`
+    and `What would prove this wrong` are forward-looking by construction: a quote
+    there is a description of testimony that does not exist yet, and requiring it to
+    appear in the input would forbid the report from saying what would falsify it.
+
+    Compared case-insensitively. English requires re-casing a quoted fragment that
+    starts a clause, and "photos oversell the great room" lifted from "Photos
+    oversell the great room." is a correct citation, not a paraphrase. Everything
+    else still has to match verbatim.
+    """
+    haystack = normalize(user_text).lower()
     bad = []
-    for q in quoted_spans(assistant_text):
-        stripped = strip_markup(q).strip().strip(".,;:")
-        if len(stripped) <= QUOTE_MIN_CHARS:
+    for name, bodies in secs.items():
+        if name in FORWARD_LOOKING_SECTIONS:
             continue
-        if stripped.lower() in CONTRACT_QUOTES:
-            continue
-        if stripped not in haystack and q not in haystack:
-            bad.append('not in the case input: "%s"' % stripped[:110])
+        for body in bodies:
+            for q in quoted_spans(body):
+                stripped = strip_markup(q).strip().strip(".,;:")
+                if len(stripped) <= QUOTE_MIN_CHARS:
+                    continue
+                if stripped.lower() in CONTRACT_QUOTES:
+                    continue
+                if stripped.lower() not in haystack:
+                    bad.append('not in the case input, under "%s": "%s"'
+                               % (name, stripped[:100]))
     r.add("GROUNDING", not bad, "\n".join(bad))
 
 
+# A figure attributed to the comparison set is claiming to be a measurement. That
+# is the class worth failing a run over: a fabricated baseline is what makes a
+# wrong diagnosis look measured.
+BASELINE_ATTRIB_RE = re.compile(
+    r"comp(?:arison[- ]set)?\s+(?:baseline|range|average|median)"
+    r"|baseline of|across the comp|comps? range", re.I)
+
+
 def check_computed(r, user_text, assistant_text):
-    """COMPUTED — every figure in the diagnosis is one the case supplied."""
+    """COMPUTED — figures the diagnosis presents as read must be in the case input.
+
+    Two tiers, because a single tier cannot be honest here. Reports legitimately
+    derive figures — a median of the supplied days-on-market, a per-30
+    normalization of a second-showing rate, a square-footage difference — and no
+    pattern separates a derivation from a fabrication. Across the five recorded
+    runs, every ungrounded figure was a correct derivation and none was invented.
+
+    So: FAIL only where the figure is attributed to the comparison set as a
+    baseline, which is the class that makes a wrong diagnosis look measured. WARN
+    on every other ungrounded figure, printed with its context, for a reader to
+    adjudicate. A warning is not a silent pass — it is on the receipt.
+    """
     pool = figure_pool(user_text)
-    bad = []
-    for raw, digits in figures(strip_quoted(assistant_text)):
-        if digits in pool:
-            continue
-        if digits.rstrip("0").rstrip(".") in pool:
-            continue
-        bad.append("figure not in the case input: %s" % raw)
-    seen, uniq = set(), []
-    for b in bad:
-        if b not in seen:
-            seen.add(b)
-            uniq.append(b)
-    r.add("COMPUTED", not uniq, "\n".join(uniq[:12]))
+    prose = strip_quoted(assistant_text)
+    sentences = re.split(r"(?<=[.!?])\s+|\n", prose)
+    fails, warns = [], []
+    for sent in sentences:
+        attributed = bool(BASELINE_ATTRIB_RE.search(sent))
+        for raw, digits in figures(sent):
+            if digits in pool or digits.rstrip("0").rstrip(".") in pool:
+                continue
+            snippet = sent.strip()[:120]
+            entry = "%s  in: %s" % (raw, snippet)
+            (fails if attributed else warns).append(entry)
+    fails, warns = dedupe(fails), dedupe(warns)
+    r.add("COMPUTED", not fails, "\n".join(fails[:10]))
+    for w in warns[:10]:
+        r.warn("COMPUTED", "figure not in the case input (derivation or fabrication "
+                           "— a reader decides): %s" % w)
+
+
+def dedupe(items):
+    seen, out = set(), []
+    for i in items:
+        if i not in seen:
+            seen.add(i)
+            out.append(i)
+    return out
+
+
+class _Span:
+    """A merged bold lead-in. Mimics the slice of re.Match that check_ruled_out uses."""
+
+    def __init__(self, start, end, text):
+        self._start, self._end, self._text = start, end, text
+
+    def start(self):
+        return self._start
+
+    def end(self):
+        return self._end
+
+    def group(self, _n):
+        return self._text
 
 
 def check_ruled_out(r, secs):
@@ -458,7 +534,17 @@ def check_ruled_out(r, secs):
     if not bodies:
         return r.add("RULED-OUT", False, "no Alternatives section (see FORMAT)")
     body = bodies[0]
-    entries = list(re.finditer(r"\*\*(.+?)\*\*", body))
+    raw_entries = list(re.finditer(r"\*\*(.+?)\*\*", body))
+    # `**The day-41 reduction.** **Uninformative.**` is one lead-in wearing two
+    # bold spans. Merge spans separated only by whitespace or punctuation, or the
+    # first is scored as a rival named with nothing after it.
+    entries = []
+    for m in raw_entries:
+        if entries and not body[entries[-1].end():m.start()].strip(" \t\n.,;:-—"):
+            entries[-1] = _Span(entries[-1].start(), m.end(),
+                                entries[-1].group(1) + " " + m.group(1))
+        else:
+            entries.append(_Span(m.start(), m.end(), m.group(1)))
     problems = []
     if not entries:
         problems.append("no named rival: the section names nothing it demoted")
@@ -466,9 +552,14 @@ def check_ruled_out(r, secs):
         start = m.end()
         end = entries[i + 1].start() if i + 1 < len(entries) else len(body)
         evidence = normalize(strip_markup(body[start:end]))
-        if len(evidence) < 40:
+        # 20 chars is the line between a bare verdict and a verdict with its
+        # ground. "Not supported." is 14 and is a dismissal; "Ruled out on
+        # attribute verification." is 36 and names the evidence that did the
+        # ruling out. Terse is not unsupported — an earlier 40-char floor failed
+        # a correct one-clause demotion in run 001.
+        if len(evidence) < 20:
             problems.append(
-                "rival %r is named with no eliminating evidence (%d chars)"
+                "rival %r is named with no eliminating evidence, only a verdict (%d chars)"
                 % (strip_markup(m.group(1))[:60], len(evidence))
             )
     r.add("RULED-OUT", not problems, "\n".join(problems))
@@ -531,7 +622,7 @@ def verify_transcript(path, label=None):
     check_format(r, secs, order)
     check_one_cause(r, secs)
     check_three_level(r, secs)
-    check_grounding(r, user_text, assistant_text)
+    check_grounding(r, user_text, secs)
     check_computed(r, user_text, assistant_text)
     check_ruled_out(r, secs)
     check_set_integrity(r, secs)

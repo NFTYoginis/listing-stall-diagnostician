@@ -1,0 +1,19 @@
+$ python3 checks/verify.py --run 001
+
+Listing Stall Diagnostician - checking recorded runs against the contract in product/rules.md
+
+runs/001-search-threshold/transcript.md  PASS
+  ok  FORMAT
+  ok  ONE-CAUSE
+  ok  THREE-LEVEL
+  ok  GROUNDING
+  ok  COMPUTED
+  ok  RULED-OUT
+  ok  SET-INTEGRITY
+  ok  NO-RX
+  ok  CONFIDENCE
+
+------------------------------------------------------------------
+PASS  1/1 runs, 9 checks run
+
+exit=0

@@ -33,32 +33,92 @@ change table beneath it. Nothing else closes this.
 
 ---
 
-## GATE-1 — COMPUTED exempts small integers
+## KEY-1 — the case-01 key demanded an invented figure (corrected)
 
-`checks/verify.py` requires every figure in a diagnosis to appear in the case input, but
-exempts bare integers of 20 or under and anything written as a percentage. Those exemptions
-exist because ratios and stage numbers are legitimately derived rather than read, and without
-them the gate would reject correct reports.
+`tests/case-01-search-threshold/expected.md` required the report to confirm search-threshold
+exclusion by citing a $400,000 filter boundary that appears nowhere in `inputs.md`. That is
+the precise inference-dressed-as-evidence that `examples.md` names and prohibits: a key
+requiring the folder to break its own rule.
 
-The cost is real: a fabricated **"6 of 9 comps remain unsold"** passes, because 6 and 9 are
-both under the floor. The gate is loose in a known direction and the direction is upward —
-it will not block a correct report, and it will miss a small invented count.
+Found by writing run 001's prediction, before any run existed. Corrected in the same commit as
+the keys, from a read rather than from an output — the distinction matters, because a key
+repaired after a run agrees with that run by construction.
 
-**Closes at:** `code`. Either a derivation whitelist that lets real arithmetic through while
-still grounding read figures, or a structured funnel block the model fills in and the checker
-recomputes. A wider exemption is not a fix.
+**Closed at:** `artifact`, 2026-08-18. The assertion block in the case key changed and carries
+its own correction note. **Kept in this file rather than deleted**, because the case's key has
+now been wrong twice in the same direction (see KEY-2) and the pattern is the finding.
 
 ---
 
-## GATE-2 — GROUNDING has a length floor
+## KEY-2 — the case-01 key still wants a more decisive answer than the case licenses
 
-Quoted spans of 25 characters or fewer are treated as labels rather than evidence and are not
-checked against the case input. A fabricated four-word showing-feedback quote sits under that
-floor. `tests/negative/04--fabricated-quote.md` plants a long one and is caught; a short one
-would not be.
+Run 001 declined to name a single primary cause. It held Stage 1's causes in two families —
+not-served (1A, 1E) against served-and-not-clicked (1B) — and said the record cannot separate
+them, because the filter convention was not supplied **and the images were described rather
+than attached**, which makes 1B an image-dependent branch that
+`reference/evidence-requirements.md` forbids assessing from a description.
 
-**Closes at:** `code`, with a negative fixture carrying a short fabricated quote that the
-fixed gate rejects.
+That is `rules.md` Step 6 executed verbatim for genuinely tied causes. The key expected a
+leading candidate anyway. The run has the better argument.
+
+`tests/case-01-search-threshold/expected.md` still asserts a single named primary cause. It is
+wrong, in the same direction as KEY-1: wanting decisiveness the evidence does not license.
+
+**Closes at:** `artifact`. The case key changes to expect the tie and to name both missing
+inputs, or case-01's `inputs.md` gains the images and the convention so a single cause becomes
+licensable. Not by adding a sentence to this file.
+
+---
+
+## GATE-1 — COMPUTED cannot distinguish a derivation from a fabrication
+
+The first version of this gate failed a run whenever any figure in the diagnosis was absent
+from the case input. Across the five recorded runs it fired eight times and **every single
+firing was a correct derivation**: a median of the supplied days-on-market, a per-30
+normalisation of a second-showing rate, two square-footage and day-count subtractions, and a
+round number that a supplied price reduction crossed. Zero fabrications. The only fabrication
+it ever caught was one I made myself, in its own control fixture.
+
+No pattern separates arithmetic-over-supplied-figures from invention. The source build this
+gate was modelled on solved that architecturally — a script computed every number from git
+history so the model only labelled them — and this family has no such computation step.
+
+The gate is now two-tier: it **fails** only where the ungrounded figure is attributed to the
+comparison set as a baseline (the class that makes a wrong diagnosis look measured, and the
+class `tests/negative/05--invented-figure.md` plants), and **warns** on everything else, with
+the surrounding sentence printed so a reader adjudicates. Warnings are on every
+`verify-output.txt` in `runs/`.
+
+Two costs, both real. A fabricated figure outside a baseline attribution now only warns. And
+bare integers of 20 or under, and percentages, are exempt entirely — so a fabricated "6 of 9
+comps remain unsold" is invisible.
+
+**Closes at:** `code`. A structured funnel block the model fills in and the checker recomputes
+from the case input would close it properly. Widening the warn tier is not a fix; nor is
+restoring the hard failure, which would fail four of five correct runs.
+
+---
+
+## GATE-2 — GROUNDING has a length floor and two scope exemptions
+
+Three ways a fabricated quote can pass:
+
+1. **Length.** Spans of 25 characters or fewer are treated as labels rather than evidence and
+   are not checked. A fabricated four-word feedback quote sits under that floor.
+   `tests/negative/04--fabricated-quote.md` plants a long one and is caught; a short one is
+   not.
+2. **Section scope.** `Missing evidence` and `What would prove this wrong` are exempt, because
+   quotes there describe testimony that does not exist yet — run 002 correctly wrote *"for
+   instance 'the living room is too small for us'"* as a hypothetical falsifier, and the first
+   version of this gate failed the run for it. A fabricated citation placed in one of those two
+   sections now passes.
+3. **Case.** Matching is case-insensitive, so that a fragment lifted from mid-sentence and
+   re-cased at the start of a clause is not scored as a paraphrase. A fabrication that differs
+   from a real note only in capitalisation would pass, though there is no obvious way to
+   exploit that deliberately.
+
+**Closes at:** `code`, with negative fixtures for all three: a short fabricated quote, a
+fabricated quote inside a forward-looking section, and the case variant.
 
 ---
 

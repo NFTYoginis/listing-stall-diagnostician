@@ -1,0 +1,24 @@
+$ python3 checks/verify.py --run 005
+
+Listing Stall Diagnostician - checking recorded runs against the contract in product/rules.md
+
+runs/005-undetermined-no-funnel/transcript.md  PASS
+  ok  FORMAT
+  ok  ONE-CAUSE
+  ok  THREE-LEVEL
+  ok  GROUNDING
+  ok  COMPUTED
+  ok  RULED-OUT
+  ok  SET-INTEGRITY
+  ok  NO-RX
+  ok  CONFIDENCE
+  ..  COMPUTED figure not in the case input (derivation or fabrication — a reader decides): 80  in: Comp 3 is 3/1.5 rather than 3/2 and is 80 sq ft smaller; it is the fastest in the set at 18 days, so retaining it makes 
+  ..  COMPUTED figure not in the case input (derivation or fabrication — a reader decides): $350,000,  in: **The day-34 reduction structurally qualifies as an experiment, and its result was not recorded.** Taking the four condi
+  ..  COMPUTED figure not in the case input (derivation or fabrication — a reader decides): 28  in: The only observable outcome is that no sale followed in 28 days, which is consistent with comp behaviour (one comp is pe
+  ..  COMPUTED figure not in the case input (derivation or fabrication — a reader decides): $350,000  in: That buyers in this subdivision cap searches at $350,000 is a fact about this market, not something derivable from the c
+  ..  COMPUTED figure not in the case input (derivation or fabrication — a reader decides): $350,000  in: **Stage 1 - would show as views far below comps.** - *Search threshold exclusion (1A).* Pre-reduction price above $350,0
+
+------------------------------------------------------------------
+PASS  1/1 runs, 9 checks run
+
+exit=0
