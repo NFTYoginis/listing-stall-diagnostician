@@ -24,6 +24,8 @@ SET-INTEGRITY    07--no-integrity-verdict.md        product/rules.md
     enforces: Step 0.5: state one verdict — usable / with limitations / not usable
 NO-RX            08--prescription-midsentence.md    product/rules.md
     enforces: Prohibited in output: a recommended action of any kind
+SURFACES         (built-in) status.json version drift status.json
+    enforces: Every published status claim matches status.json, the only authored source
 CONFIDENCE       09--no-confidence-level.md         product/rules.md
     enforces: Confidence is one of three levels, and the falsifier is stated
 
@@ -47,9 +49,9 @@ NULL-TESTED  UNCOVERED
 
 COVERAGE ASSERTION
 ------------------------------------------------------------------------------------------------
-Gates declared:            9
+Gates declared:            10
 Gates with a negative fixture: 9
-Gates whose source anchor still resolves: 9
+Gates whose source anchor still resolves: 10
 Requirements declared UNCOVERED: 4
 
 Every gate has a negative fixture and every gate's rule is still present in

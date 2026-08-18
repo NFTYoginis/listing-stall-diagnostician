@@ -1,4 +1,18 @@
-# Run record
+# Prior runs — claimed, never filmed
+
+**This file is the record of three blind runs that left no artifacts.** It is kept because
+those runs happened and deleting the record would be a second dishonesty. It is not evidence.
+The evidence is in the sibling folders of this directory, which have transcripts.
+
+<!-- STATUS-CLAIM -->
+v0.8 · 5 of 5 recorded runs pass all 10 gates in checks/verify.py · 11 open defects, listed in OPEN-DEFECTS.md · re-run against the folder that ships
+<!-- /STATUS-CLAIM -->
+
+The structural cause of this file existing: `tests/case-NN/` held `inputs.md` and `expected.md`
+and nothing else, so an output had nowhere to land and became prose. `runs/NNN-<slug>/` now has
+a slot for the transcript. See RUNS-2 in `OPEN-DEFECTS.md`.
+
+---
 
 3 blind runs, 3 cases. All three reached their keyed constraint. That pass found **3 defects** — two answer keys wrong (a keyed cause its own fixture refuted; a confidence grade above the binding cap) and one fixture with logically impossible dates. All corrected.
 

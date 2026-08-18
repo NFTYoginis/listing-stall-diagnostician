@@ -174,7 +174,9 @@
       <a class="btn" href="https://github.com/NFTYoginis/listing-stall-diagnostician">Inspect the source</a>
       <a class="btn" href="#report">See a worked diagnosis</a>
     </div>
-    <p class="badge">v0.7 · Exercised by three blind runs across three cases. All three reached their keyed constraint; that pass found three defects — two answer keys and one fixture — all corrected. A later pass found a routing defect in <code>rules.md</code> itself, so the folder that scored is not the folder that now ships. Constructed cases, no retrospective field validation.</p>
+    <p class="badge"><!-- STATUS-CLAIM -->
+      v0.8 · 5 of 5 recorded runs pass all 10 gates in checks/verify.py · 11 open defects, listed in OPEN-DEFECTS.md · re-run against the folder that ships
+      <!-- /STATUS-CLAIM --></p>
   </div>
 </header>
 
@@ -302,7 +304,7 @@
     <p>The evidence doesn't support one. Every funnel stage sits inside the comp range, the segment slowed during the listing window, and the prior $7,500 cut crossed no threshold and moved past no competitor, which makes it a test that never ran rather than a test that failed. The assertions for that case require the folder to say so, to name no cause, to recommend nothing, and to cap its own confidence at Provisional because the absorption data needed to confirm the null was withheld.</p>
     <p>If it ever returns a cause on that input, the method has stopped binding and the test says which file drifted.</p>
     <div class="btns">
-      <a class="btn" href="https://github.com/NFTYoginis/listing-stall-diagnostician/blob/main/tests/case-03-null-slowdown/expected.md">Read the assertions</a>
+      <a class="btn" href="https://github.com/NFTYoginis/listing-stall-diagnostician/blob/main/runs/003-null-under-pressure/transcript.md">Watch the run</a>
     </div>
   </div>
 </section>
@@ -352,7 +354,7 @@ Do not recommend actions.</pre>
     <p>Diagnoses listing performance against a comparison set you supply. Not an appraisal, a CMA, or a valuation, and it does not model your local market beyond the comps you give it.</p>
     <p>There are deliberately no industry-average benchmarks anywhere in the folder. Showing rates and normal time on market vary too much by market, band, and season for a national figure to be anything but wrong and believed. Every baseline is computed from your own comps.</p>
     <p>Worked examples in the repo are constructed teaching cases, not client files. The comparison set is a natural baseline that reduces confounding, not an experimental control: comparable homes still differ in condition, street, layout, lot, view, association terms, and financing eligibility.</p>
-    <p>v0.2 · <a href="https://github.com/NFTYoginis/listing-stall-diagnostician/blob/main/CHANGELOG.md">Changelog</a> · <a href="https://github.com/NFTYoginis/listing-stall-diagnostician/tests">Regression tests</a> · MIT licensed</p>
+    <p><a href="https://github.com/NFTYoginis/listing-stall-diagnostician/blob/main/OPEN-DEFECTS.md">Open defects</a> · <a href="https://github.com/NFTYoginis/listing-stall-diagnostician/tests">Regression tests</a> · MIT licensed</p>
   </div>
 </footer>
 

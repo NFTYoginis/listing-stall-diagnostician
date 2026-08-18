@@ -1,196 +1,171 @@
 # Listing Stall Diagnostician
 
-**v0.7** · Status: **three blind runs across three cases**, each run in a session that had never
-seen this folder and was forbidden from opening the answer keys, each scored line by line against
-assertions written before the run. All three reached their keyed constraint; that pass found three
-defects — two answer keys and one fixture — all corrected. No retrospective field validation — the
-cases are constructed, not client files.
+You have a listing that hasn't sold, the seller conversation is this week, and everyone in the
+room is about to assume the answer is price.
 
-**Read those run scores with one caveat.** A later pass, which asked runs to report
-rule-versus-example divergences, found a routing defect in `rules.md` itself: Step 1 could
-terminate and skip the funnel the output contract requires. An earlier version of this line said
-the runs had found no defect in `rules.md`. That was true when it was written and false within a
-day. The runs passed because they did not follow the terminating instruction, not because it was
-sound. It is fixed, and the folder that scored has not been re-run as the folder that now ships.
+This tells you whether the evidence actually supports that — before the assumption becomes a
+recommendation. It finds where the listing is losing buyers, names the one cause the evidence
+supports, and stops. It does not tell you what to do about it.
 
-A folder you drop into a Claude Project. Claude becomes a diagnostician that works out
-why a specific listing has not sold.
-
-It is built for one moment: you have a property past its expected time on market, the
-seller conversation is coming, and everyone in the room is about to assume the answer is
-price. Before that assumption becomes a recommendation, this tells you whether the
-evidence actually supports it.
-
-Price is not always the constraint, and a reduction aimed at the wrong one costs the
-seller money without producing a sale. Locating where the listing actually breaks is what
-tells you whether you are about to apply the right intervention to the wrong problem.
+Price is not always the constraint, and a reduction aimed at the wrong one costs the seller
+money without producing a sale.
 
 ---
 
-## What it does
-
-Reconstructs the buyer funnel for your listing, compares it against your comparable
-properties over the same weeks, finds the earliest stage where your listing falls below
-that baseline, and names the one cause the evidence supports.
-
-Then it tells you what would prove it wrong.
-
-## What it does not do
-
-- Recommend a price, a reduction, or a percentage
-- Rewrite your description or suggest headlines
-- Value the property
-- Hand you a list of nine things to improve
-- Tell you what to do next
-
-It stops at the cause. What you do about it is your call with your seller, and it is a
-different conversation with different inputs.
-
----
-
-## Setup
+## Use it
 
 1. Create a Claude Project.
-2. Upload everything in this folder **except `tests/`** to the project knowledge.
-
-   `tests/` stays out deliberately. It holds the answer keys the regression cases are scored
-   against, and a diagnostician that can read its own expected outputs is not being tested by
-   them. It belongs in the repo, where a stranger can run the cases and check the result
-   against the key themselves. It does not belong in the project, where the folder under test
-   would be reading them.
+2. Upload **`product/`**. That is the whole instruction — every file in it, nothing outside it.
 3. Paste this into the project's custom instructions:
 
-   > Follow identity.md and rules.md exactly. Run the diagnostic sequence in rules.md in
-   > order and use the output contract at the end of that file. Consult reference/ as
-   > needed. Do not recommend actions.
+   > Follow `CLAUDE.md`. It routes.
 
-That is the whole install. No dependencies, no API keys, nothing to run.
+Then say **"Diagnose this listing"** and answer what it asks. It will walk you through
+collecting what it needs, one thing at a time, and tell you where each piece lives in your MLS
+or showing platform.
+
+Nothing to install, no API key, no dependencies.
+
+> **Why the upload is a folder and not a list of exceptions.** `tests/`, `runs/` and `checks/`
+> hold answer keys and completed diagnoses. A diagnostician that can read its own expected
+> outputs is not being tested by them. The previous version of this README asked you politely
+> to exclude `tests/`; a folder position is a fact and a README sentence is a request, so now
+> they simply sit outside the thing you upload.
 
 ---
 
-## Running a case
+## What you need
 
-Upload the case materials and say: **"Diagnose this listing."**
-
-### What you need
-
-Four things. Without all four you will get an Undetermined result rather than a wrong one.
+Four things. Without all four you get an "I cannot tell" rather than a wrong answer.
 
 1. **The listing** — description, all photos, property facts, current price
-2. **Price and status history** — original price, every change with dates, current DOM
-3. **Four or more comparables** — same submarket, overlapping band, same window, mixed
-   sold and active
-4. **At least one funnel number** — views, saves, inquiries, or showings
+2. **Price and status history** — original price, every change with dates, current days on market
+3. **Four or more comparables** — same submarket, overlapping band, same window, mixed sold and active
+4. **At least one activity number** — views, saves, inquiries, or showings
 
-That fourth item is the one most often skipped and the one the method depends on
-entirely. It is what locates where the listing is failing. Without it, every possible
-cause stays live and anything the diagnostician names is a guess.
+The fourth is the one people skip and the one everything depends on. It's what locates *where*
+the listing is failing. Without it every possible cause stays live and anything named is a guess.
 
-### What sharpens it considerably
-
-- **Showing feedback, verbatim.** Paste the actual notes. Do not summarize them. The
-  pattern across notes is the evidence and summarizing destroys it.
-- **Second showing count.** The single most diagnostic number available if buyers are
-  visiting and not writing. It is already sitting in your showing platform.
-- **Views broken out by portal.**
-- **Neighborhood DOM trend** across the same window, which is what the null model runs
-  on.
-
-Full intake list in [reference/intake.md](reference/intake.md).
+**Sharpens it a lot:** showing feedback pasted verbatim rather than summarised, and the
+second-showing count — how many of the people who came once came back. That number is usually
+sitting unused in your showing platform, and if buyers are visiting and not writing, it is the
+most diagnostic figure available.
 
 ---
 
 ## What you get back
 
-A report with fixed headings, in this order:
+A report with fixed headings. The diagnosis comes at three levels rather than one, because
+flattening them produces a finding that sounds rigorous and cannot be acted on.
 
-Failure observed · Comparison set · Comparison-set integrity · Funnel reconstruction ·
-Primary constraint · Primary cause · Mechanism · Evidence for this cause and against the
-alternatives · Alternatives and why they are demoted · Null model · Confidence · Missing
-evidence · What would prove this wrong
+- **Constraint** — *where* the funnel breaks. One of five stages.
+- **Cause** — *why* it breaks there. One entry from the taxonomy.
+- **Mechanism** — *how* that cause produced this specific pattern in this listing.
 
-The diagnosis comes at three levels rather than one, because flattening them produces a
-finding that sounds rigorous and cannot be acted on. **Constraint** is where the funnel
-breaks. **Cause** is why it breaks there. **Mechanism** is how that cause produces this
-specific pattern in this listing.
-
-Three worked examples in [examples.md](examples.md), including one that finds nothing
-wrong.
-
----
+Then the evidence for it, the alternatives it demoted and why, the confidence level, and what
+would prove it wrong.
 
 ## The three answers people find surprising
 
-**"Your listing is fine."** If your property sits inside the comp range at every funnel
-stage, there is no listing-specific problem and the market slowed. This comes back more
-often than agents expect, and it is the finding that saves the most money, because a
-reduction against a segment-wide slowdown buys nothing except a lower sale price.
+**"Your listing is fine."** If it sits inside the comp range at every stage, there is no
+listing-specific problem and the market slowed. This comes back more often than agents expect
+and saves the most money, because a reduction against a segment-wide slowdown buys nothing
+except a lower sale price. [Watch it happen](runs/003-null-under-pressure/transcript.md) on a
+case where the agent explicitly asked for the case for a second reduction.
 
-**"Your reduction already answered this."** A prior cut is a completed experiment, but it
-only tested the mechanism it was capable of testing. A $5,000 trim on a $512,000 listing
-says nothing about a $500,000 search threshold. When a cut *did* qualify and activity
-still did not move, that is strong evidence against price at that mechanism, and the
-usual reading that the cut was simply too small is the weaker of the two available.
+**"Your reduction already answered this."** A prior cut is a completed experiment, but it only
+tested the mechanism it was capable of testing. A $5,000 trim on a $512,000 listing says
+nothing about a $500,000 search threshold.
 
-**"I cannot tell you from this."** If the funnel cannot be reconstructed, it names the
-missing input and stops rather than producing a confident cause built on nothing. That is
-the intended behavior, not a bug.
+**"I cannot tell you from this."** If the funnel can't be reconstructed it names the missing
+input and stops. That is the intended behaviour, not a bug —
+[here is one](runs/005-undetermined-no-funnel/transcript.md), on a case with an obvious wrong
+answer sitting in front of it.
 
 ---
 
 ## How it decides
 
-The method turns on one rule.
-
 Every listing moves buyers through five stages: **views, engagement, showings, second
 showings, offers.** Find the earliest one where yours falls below the comparable baseline.
-**That stage is the diagnosis site, and every stage after it is starved and therefore
-tells you nothing.**
+**That stage is the diagnosis site, and every stage after it is starved and therefore tells
+you nothing.**
 
-Second showings are a stage rather than a metric because a first showing and a second
-showing are different decisions made on different information. The first is a judgment
-about the listing. The second is a judgment about the house. Most stalled listings that
-look healthy break exactly there, and it is invisible unless you count it.
+A listing getting a third of the normal views will also get few showings and no offers. Those
+are consequences, not separate faults. Reading them as independent problems is how you end up
+holding a list of nine issues and no idea which one is holding the sale.
 
-A listing getting a third of the normal views will also get few showings and no offers.
-Those are consequences, not separate faults. Reading them as independent problems is how
-you end up holding a list of nine issues and no idea which one is holding the sale.
+Second showings are a stage rather than a metric because a first showing and a second showing
+are different decisions made on different information. The first is a judgment about the
+listing. The second is a judgment about the house. Most stalled listings that look healthy
+break exactly there, and it is invisible unless you count it.
 
-The rest of the method is separating the causes that are live at that one stage, using
-evidence rather than plausibility, and then trying to reject the whole thing with the
-null before committing to it.
+---
 
-Full method in [rules.md](rules.md). Cause taxonomy with evidence signatures in
-[reference/failure-modes.md](reference/failure-modes.md).
+## Where this build actually stands
+
+<!-- STATUS-CLAIM -->
+v0.8 · 5 of 5 recorded runs pass all 10 gates in checks/verify.py · 11 open defects, listed in OPEN-DEFECTS.md · re-run against the folder that ships
+<!-- /STATUS-CLAIM -->
+
+That line is generated from [`status.json`](status.json) and mechanically checked against every
+other surface that publishes it. It is not typed by hand anywhere.
+
+- **[`runs/`](runs/)** — five recorded runs. Each has the transcript verbatim, the answer key
+  that was committed *before* it, the scoring, and the verifier's output. `git log` shows the
+  key preceding the transcript every time.
+- **[`checks/verify.py`](checks/verify.py)** — the gates, standard library, no network.
+  `--selftest` runs a planted-bad fixture per gate plus one clean control, and refuses to pass
+  if any gate has no fixture. The gate count lives in the claim above, not in this sentence.
+- **[`OPEN-DEFECTS.md`](OPEN-DEFECTS.md)** — everything known to be wrong, each naming the
+  layer it has to close at. A defect does not close because the sentence about it improved.
+- **[`JUDGE_GUIDE.md`](JUDGE_GUIDE.md)** — how to attack this build, in order, with the claims
+  paired to what would break them.
+
+Sixty seconds, no install:
+
+```bash
+git clone https://github.com/NFTYoginis/listing-stall-diagnostician
+cd listing-stall-diagnostician
+python3 checks/verify.py --selftest && python3 checks/verify.py
+```
 
 ---
 
 ## Files
 
 ```
-listing-stall-diagnostician/
-├── README.md                      this file
-├── identity.md                    who it is, what it diagnoses, what it refuses
-├── rules.md                       the method and the output contract
-├── examples.md                    three worked cases, one of them a null
-└── reference/
-    ├── failure-modes.md           causes by funnel stage, with evidence signatures
-    ├── baselines.md               building the comparison set and reading it
-    └── intake.md                  required inputs and missing-evidence handling
+product/            ← this is what you upload
+├── CLAUDE.md         routes; holds no method
+├── intake.md         the door: symptom to evidence, one step at a time
+├── identity.md       who it is and what it refuses
+├── rules.md          the method, Steps 0–6, and the output contract
+├── examples.md       three worked cases, one of them a null
+└── reference/        taxonomy, baselines, evidence requirements, disguised asks
+
+tests/              answer keys and planted-bad fixtures. Never uploaded.
+runs/               five recorded runs, four files each. Never uploaded.
+checks/verify.py    the gates. Never uploaded.
+BRIEF.md            the questions this is judged on
+JUDGE_GUIDE.md      how to break it
+OPEN-DEFECTS.md     what is known to be wrong
+status.json         the only place a status claim is authored
 ```
 
 ---
 
 ## Scope and honesty
 
-The examples are constructed teaching cases with figures chosen to make each
-discriminator legible. They are not client files and the numbers in them are not market
-benchmarks.
+The examples and test cases are constructed for teaching, with figures chosen to make each
+discriminator legible. They are not client files and their numbers are not benchmarks. There
+has been no retrospective field validation.
 
-There are deliberately no industry-average figures anywhere in this folder. Showing
-rates, view counts, and normal time on market vary by market, band, season, and portal,
-and any number quoted as a national average would be wrong in most places while being
-treated as authoritative. Every baseline is computed from your own comparison set.
+There are deliberately no industry-average figures anywhere in `product/`. Showing rates, view
+counts and normal time on market vary by market, band, season and portal, and any number
+quoted as a national average would be wrong in most places while being treated as
+authoritative. Every baseline is computed from your own comparison set.
 
-This diagnoses listing performance. It is not an appraisal, a CMA, or a valuation, and it
-does not model your local market beyond the comps you supply.
+This diagnoses listing performance. It is not an appraisal, a CMA, or a valuation, and it does
+not model your local market beyond the comps you supply.
+
+MIT licensed. Built by Gabe — Your AI Specialist.

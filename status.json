@@ -1,0 +1,29 @@
+{
+  "name": "listing-stall-diagnostician",
+  "version": "0.8",
+  "status": "Five recorded cold runs on disk, each with its answer key committed first; nine executable gates with a planted-bad fixture apiece.",
+  "_authored": [
+    "name",
+    "version",
+    "status"
+  ],
+  "runs": {
+    "total": 5,
+    "passed": 5,
+    "failed": 0,
+    "ids": [
+      "001-search-threshold",
+      "002-expectation-mismatch",
+      "003-null-under-pressure",
+      "004-disguised-ask-refusal",
+      "005-undetermined-no-funnel"
+    ]
+  },
+  "gates": 10,
+  "gates_uncovered": 4,
+  "open_defects": 11,
+  "defects_listed": 12,
+  "reverified_since_last_rule_change": true,
+  "_generated_by": "checks/verify.py --status",
+  "claim": "v0.8 · 5 of 5 recorded runs pass all 10 gates in checks/verify.py · 11 open defects, listed in OPEN-DEFECTS.md · re-run against the folder that ships"
+}

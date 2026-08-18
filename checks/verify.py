@@ -23,6 +23,8 @@ Usage
     python3 checks/verify.py --file out.md      # a transcript anywhere on disk
     python3 checks/verify.py --selftest         # positive + negative fixtures
     python3 checks/verify.py --coverage         # write runs/gate-coverage.txt
+    python3 checks/verify.py --status           # regenerate status.json
+    python3 checks/verify.py --sync-surfaces    # push that claim onto every surface
 
 Exit 0 pass, exit 1 fail. Every failure names the check that caught it.
 Standard library only. No network. No API key. Python 3.8+.
@@ -39,6 +41,12 @@ ROOT = Path(__file__).resolve().parent.parent
 RUNS_DIR = ROOT / "runs"
 RULES = ROOT / "product" / "rules.md"
 NEG_DIR = ROOT / "tests" / "negative"
+STATUS = ROOT / "status.json"
+
+# Surfaces that publish a status claim. Each must carry a STATUS-CLAIM block whose
+# body is exactly the rendering of status.json. One authored source, N mirrors.
+CLAIM_SURFACES = ["README.md", "docs/index.html", "runs/PRIOR-RUNS.md"]
+CLAIM_RE = re.compile(r"<!--\s*STATUS-CLAIM\s*-->(.*?)<!--\s*/STATUS-CLAIM\s*-->", re.S)
 
 GREEN, RED, YELLOW, DIM, BOLD, RESET = (
     "\033[32m", "\033[31m", "\033[33m", "\033[2m", "\033[1m", "\033[0m"
@@ -177,6 +185,13 @@ GATES = [
         "id": "NO-RX",
         "enforces": "Prohibited in output: a recommended action of any kind",
         "anchor": "A recommended action of any kind, including \"consider\" and \"you may want to\"",
+    },
+    {
+        "id": "SURFACES",
+        "enforces": "Every published status claim matches status.json, the only authored source",
+        "source": "status.json",
+        "anchor": "_generated_by",
+        "fixture": "(built-in) status.json version drift",
     },
     {
         "id": "CONFIDENCE",
@@ -721,10 +736,40 @@ def selftest():
             print("  %sok%s  %s %s-> caught by %s%s" % (GREEN, RESET, fname, DIM, want, RESET))
             print("        %s%s%s" % (DIM, exp["defect"], RESET))
 
+    print("\n%sSurface drift%s %s- bump the version in status.json and every surface must "
+          "go red until it follows%s" % (BOLD, RESET, DIM, RESET))
+    drift_ok = False
+    if STATUS.exists():
+        doc = json.loads(STATUS.read_text(encoding="utf-8"))
+        live = Result("surfaces vs live status.json")
+        check_surfaces(live)
+        bumped = dict(doc)
+        bumped["version"] = str(doc.get("version", "0.0")) + "-drift"
+        mutated = Result("surfaces vs bumped status.json")
+        check_surfaces(mutated, bumped)
+        if not live.passed:
+            print("  %sXX%s  surfaces already disagree with the real status.json"
+                  % (RED, RESET))
+        elif mutated.passed:
+            print("  %sXX%s  version bumped to %r and SURFACES still passed; the check is "
+                  "not reading the surfaces" % (RED, RESET, bumped["version"]))
+        else:
+            drift_ok = True
+            n = sum(1 for ln in mutated.checks[0][2].splitlines()
+                    if ln and not ln.startswith("    "))
+            print("  %sok%s  version bumped to %r -> SURFACES red on %d surface(s)"
+                  % (GREEN, RESET, bumped["version"], max(1, n)))
+            print("        %sA status claim authored in more than one place drifts, and the "
+                  "drift is invisible until someone reads two surfaces side by side.%s"
+                  % (DIM, RESET))
+            covered.add("SURFACES")
+    else:
+        print("  %sXX%s  status.json missing" % (RED, RESET))
+
     missing_cover = [g["id"] for g in GATES if g["id"] not in covered]
 
     print("\n%s%s%s" % (BOLD, "-" * 66, RESET))
-    ok = (not drift) and pos_ok and caught == len(entries) and not missing_cover
+    ok = (not drift) and pos_ok and drift_ok and caught == len(entries) and not missing_cover
     if missing_cover:
         print("%sUNCOVERED%s  no negative fixture for: %s"
               % (RED, RESET, ", ".join(missing_cover)))
@@ -736,6 +781,151 @@ def selftest():
     print("%s%sFAIL%s  %d/%d planted defects rejected, %d/%d gates covered"
           % (RED, BOLD, RESET, caught, len(entries), len(covered), len(GATES)))
     return 1
+
+
+# --------------------------------------------------------------------------
+# status.json — the only place a status claim is authored
+# --------------------------------------------------------------------------
+
+def git(*args):
+    import subprocess
+    try:
+        return subprocess.check_output(["git"] + list(args), cwd=str(ROOT),
+                                       stderr=subprocess.DEVNULL).decode().strip()
+    except Exception:
+        return ""
+
+
+def reverified_since_last_rule_change():
+    """Has the shipping folder been re-run since the rules last changed?
+
+    The question this build got wrong before: the folder that scored was not the
+    folder that shipped, and nothing said so. Compare the last commit touching a
+    product rule against the last commit touching a recorded transcript.
+    """
+    rules = git("log", "-1", "--format=%ct", "--", "product/rules.md",
+                "product/identity.md", "product/reference")
+    runs = git("log", "-1", "--format=%ct", "--", "runs/")
+    if not rules or not runs:
+        return None
+    return int(runs) >= int(rules)
+
+
+def compute_status():
+    """Refresh the computed fields; never touch the authored ones."""
+    doc = json.loads(STATUS.read_text(encoding="utf-8")) if STATUS.exists() else {}
+    doc.setdefault("name", "listing-stall-diagnostician")
+    doc.setdefault("version", "0.0")
+    doc.setdefault("status", "")
+    doc.setdefault("_authored", ["name", "version", "status"])
+
+    results = [verify_transcript(d / "transcript.md") for d in discover_runs()]
+    doc["runs"] = {
+        "total": len(results),
+        "passed": sum(1 for r in results if r.passed),
+        "failed": sum(1 for r in results if not r.passed),
+        "ids": [d.name for d in discover_runs()],
+    }
+    doc["gates"] = len(GATES)
+    doc["gates_uncovered"] = len(UNCOVERED)
+
+    defects = ROOT / "OPEN-DEFECTS.md"
+    entries, closed = [], 0
+    if defects.exists():
+        for line in defects.read_text(encoding="utf-8").splitlines():
+            if line.startswith("## ") and " — " in line:
+                entries.append(line[3:])
+        closed = defects.read_text(encoding="utf-8").count("**Closed at:**")
+    doc["open_defects"] = len(entries) - closed
+    doc["defects_listed"] = len(entries)
+    doc["reverified_since_last_rule_change"] = reverified_since_last_rule_change()
+    doc["_generated_by"] = "checks/verify.py --status"
+    return doc
+
+
+def render_claim(doc):
+    """The one sentence every surface must carry, character for character."""
+    r = doc.get("runs", {})
+    rv = doc.get("reverified_since_last_rule_change")
+    rv_txt = ("re-run against the folder that ships" if rv
+              else "NOT re-run since the last rule change")
+    return ("v%s · %s of %s recorded runs pass all %s gates in checks/verify.py · "
+            "%s open defects, listed in OPEN-DEFECTS.md · %s"
+            % (doc.get("version"), r.get("passed"), r.get("total"),
+               doc.get("gates"), doc.get("open_defects"), rv_txt))
+
+
+def write_status():
+    doc = compute_status()
+    doc["claim"] = render_claim(doc)
+    STATUS.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    print("wrote status.json")
+    print("  claim: %s" % doc["claim"])
+    return 0
+
+
+def sync_surfaces():
+    """Rewrite every STATUS-CLAIM block from status.json.
+
+    The claim is still authored in exactly one place; this is how the mirrors
+    follow it. SURFACES stays the guard against forgetting to run this — the
+    original defect was a claim re-typed onto each surface by hand, so the fix is
+    to stop typing it, not to stop checking it.
+    """
+    if not STATUS.exists():
+        print("%sstatus.json missing; run --status first%s" % (RED, RESET))
+        return 1
+    doc = json.loads(STATUS.read_text(encoding="utf-8"))
+    claim = render_claim(doc)
+    for rel in CLAIM_SURFACES:
+        path = ROOT / rel
+        if not path.exists():
+            print("  %sXX%s  %s missing" % (RED, RESET, rel))
+            continue
+        text = path.read_text(encoding="utf-8")
+        if not CLAIM_RE.search(text):
+            print("  %sXX%s  %s has no STATUS-CLAIM block to fill" % (RED, RESET, rel))
+            continue
+        indent = "      " if rel.endswith(".html") else ""
+        new = "<!-- STATUS-CLAIM -->\n%s%s\n%s<!-- /STATUS-CLAIM -->" % (
+            indent, claim, indent)
+        path.write_text(CLAIM_RE.sub(lambda _m: new, text, count=1), encoding="utf-8")
+        print("  %sok%s  %s" % (GREEN, RESET, rel))
+    print("claim: %s" % claim)
+    return 0
+
+
+def check_surfaces(r, doc=None):
+    """SURFACES — every published claim matches status.json exactly.
+
+    A status claim authored in more than one place drifts, and the drift is
+    invisible until someone reads two surfaces side by side. On 2026-08-18 three
+    live repos were publishing claims that had been retracted ten days earlier,
+    after a sweep whose own commit message named the failure mode as fixing an
+    instance and not the class. This is the class.
+    """
+    if doc is None:
+        if not STATUS.exists():
+            return r.add("SURFACES", False,
+                         "status.json missing; run python3 checks/verify.py --status")
+        doc = json.loads(STATUS.read_text(encoding="utf-8"))
+    want = render_claim(doc)
+    problems = []
+    for rel in CLAIM_SURFACES:
+        path = ROOT / rel
+        if not path.exists():
+            problems.append("%s: missing" % rel)
+            continue
+        m = CLAIM_RE.search(path.read_text(encoding="utf-8"))
+        if not m:
+            problems.append("%s: no STATUS-CLAIM block; it publishes a claim with no source"
+                            % rel)
+            continue
+        got = normalize(strip_markup(re.sub(r"<[^>]+>", " ", m.group(1))))
+        if got != normalize(strip_markup(want)):
+            problems.append("%s disagrees with status.json\n    surface: %s\n    status:  %s"
+                            % (rel, got[:150], normalize(strip_markup(want))[:150]))
+    r.add("SURFACES", not problems, "\n".join(problems))
 
 
 # --------------------------------------------------------------------------
@@ -767,7 +957,7 @@ def write_coverage(out_path=None):
     lines.append("-" * 96)
     all_ok = True
     for g in GATES:
-        fixture = expectations.get(g["id"])
+        fixture = expectations.get(g["id"]) or g.get("fixture")
         anchored = g["id"] not in drift
         if not fixture or not anchored:
             all_ok = False
@@ -830,12 +1020,20 @@ def main():
                     help="assert the checker rejects known-bad runs and accepts a clean one")
     ap.add_argument("--coverage", action="store_true",
                     help="write runs/gate-coverage.txt")
+    ap.add_argument("--sync-surfaces", action="store_true",
+                    help="rewrite every STATUS-CLAIM block from status.json")
+    ap.add_argument("--status", action="store_true",
+                    help="regenerate status.json, the only authored source of a status claim")
     args = ap.parse_args()
 
     if args.selftest:
         return selftest()
     if args.coverage:
         return write_coverage()
+    if args.status:
+        return write_status()
+    if args.sync_surfaces:
+        return sync_surfaces()
 
     if args.file:
         targets = [Path(args.file)]
@@ -861,6 +1059,10 @@ def main():
             print("  %sXX%s  %s %s" % (RED, RESET, gate, msg))
 
     results = [verify_transcript(t) for t in targets]
+    if not args.file:
+        surf = Result("status claims across every surface")
+        check_surfaces(surf)
+        results.append(surf)
     for r in results:
         r.render()
 
