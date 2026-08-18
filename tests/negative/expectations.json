@@ -1,0 +1,39 @@
+{
+  "_note": "Each fixture is the clean control with exactly one planted defect. The named gate must be among the gates that reject it. Regenerate with python3 tests/negative/build-fixtures.py",
+  "01--section-out-of-order.md": {
+    "must_fail_gate": "FORMAT",
+    "defect": "Confidence is reported before the null model, so the contract's order is broken while every required heading is still present."
+  },
+  "02--two-primary-causes.md": {
+    "must_fail_gate": "ONE-CAUSE",
+    "defect": "The primary cause is hedged into two causes mid-sentence, which is the shape a flat audit takes when it is wearing a diagnosis's headings."
+  },
+  "03--levels-collapsed.md": {
+    "must_fail_gate": "THREE-LEVEL",
+    "defect": "The mechanism is restated as a label instead of traced to this listing's evidence, collapsing three levels into two."
+  },
+  "04--fabricated-quote.md": {
+    "must_fail_gate": "GROUNDING",
+    "defect": "A plausible showing-feedback quote that appears nowhere in the case input is planted mid-paragraph, between two quotes that are real."
+  },
+  "05--invented-figure.md": {
+    "must_fail_gate": "COMPUTED",
+    "defect": "A comp baseline figure the case never supplied is written mid-sentence into the evidence section, where it reads as measured."
+  },
+  "06--rival-without-evidence.md": {
+    "must_fail_gate": "RULED-OUT",
+    "defect": "A rival is named and demoted with no eliminating evidence attached, which is a list of dismissals wearing the demotion section's name."
+  },
+  "07--no-integrity-verdict.md": {
+    "must_fail_gate": "SET-INTEGRITY",
+    "defect": "The integrity section discusses the comparison set at length but never states the verdict, so a weak baseline would pass without anyone noticing it was never graded."
+  },
+  "08--prescription-midsentence.md": {
+    "must_fail_gate": "NO-RX",
+    "defect": "A recommended action is buried mid-paragraph in the missing-evidence section, far from the start of any line, in the hedged form rules.md names explicitly."
+  },
+  "09--no-confidence-level.md": {
+    "must_fail_gate": "CONFIDENCE",
+    "defect": "The confidence section reads as confident prose mid-paragraph but never states one of the three permitted levels, so nothing binds the cap."
+  }
+}

@@ -186,7 +186,7 @@ In the searches that matter, it is not present.
 
 *Note on why that attribution is written out.* A filter convention is a fact about a
 local market, not something derivable from the case file. Asserting one you were not
-given is inference dressed as evidence, which `reference/intake.md` prohibits. If the
+given is inference dressed as evidence, which `reference/evidence-requirements.md` prohibits. If the
 convention is not supplied, threshold exclusion cannot be confirmed and stays tied with
 the other live Stage 1 causes. Name the missing input instead of inventing the number.
 
