@@ -105,7 +105,7 @@ break exactly there, and it is invisible unless you count it.
 ## Where this build actually stands
 
 <!-- STATUS-CLAIM -->
-v0.8 · 5 of 5 recorded runs pass all 10 gates in checks/verify.py · 11 open defects, listed in OPEN-DEFECTS.md · re-run against the folder that ships
+v0.8 · 5 of 5 recorded runs pass all 9 per-run gates in checks/verify.py (+1 repo-level) · 11 open defects, listed in OPEN-DEFECTS.md · re-run against the folder that ships
 <!-- /STATUS-CLAIM -->
 
 That line is generated from [`status.json`](status.json) and mechanically checked against every

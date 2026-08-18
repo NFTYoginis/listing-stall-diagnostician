@@ -5,7 +5,7 @@ those runs happened and deleting the record would be a second dishonesty. It is 
 The evidence is in the sibling folders of this directory, which have transcripts.
 
 <!-- STATUS-CLAIM -->
-v0.8 · 5 of 5 recorded runs pass all 10 gates in checks/verify.py · 11 open defects, listed in OPEN-DEFECTS.md · re-run against the folder that ships
+v0.8 · 5 of 5 recorded runs pass all 9 per-run gates in checks/verify.py (+1 repo-level) · 11 open defects, listed in OPEN-DEFECTS.md · re-run against the folder that ships
 <!-- /STATUS-CLAIM -->
 
 The structural cause of this file existing: `tests/case-NN/` held `inputs.md` and `expected.md`

@@ -22,8 +22,11 @@
   "gates": 10,
   "gates_uncovered": 4,
   "open_defects": 11,
-  "defects_listed": 12,
+  "defects_listed": 15,
   "reverified_since_last_rule_change": true,
   "_generated_by": "checks/verify.py --status",
-  "claim": "v0.8 · 5 of 5 recorded runs pass all 10 gates in checks/verify.py · 11 open defects, listed in OPEN-DEFECTS.md · re-run against the folder that ships"
+  "claim": "v0.8 · 5 of 5 recorded runs pass all 9 per-run gates in checks/verify.py (+1 repo-level) · 11 open defects, listed in OPEN-DEFECTS.md · re-run against the folder that ships",
+  "gates_per_run": 9,
+  "gates_repo_level": 1,
+  "requirements_uncovered": 4
 }

@@ -234,3 +234,56 @@ not build it.**
 ---
 
 Last reviewed: 2026-08-18.
+
+---
+
+## GATE-1 — the falsification guide's own command crashed instead of running
+
+**Found by the cold gate, 2026-08-18.** `JUDGE_GUIDE.md` §2 is the two-minute mechanical proof
+of the grounding claim, and it ends "if it doesn't, the grounding claim is false." Its literal
+command — `python3 checks/verify.py --file /tmp/t.md` — raised `ValueError` out of
+`Path(path).relative_to(ROOT)` and exited **1**. Relative paths failed the same way.
+
+Exit 1 is what a failing gate also returns, so a reader running the guide's own instruction
+could see a non-zero exit and conclude the test had passed. The claim was not merely untested,
+it was untestable by the documented method, in the file whose job is to invite falsification.
+
+**Closed at:** `code`, 2026-08-18. `display_path()` falls back to the path as given; a label is
+cosmetic and must never stop a verdict being reached. A `Judge path` step in `--selftest` now
+runs `--file` against a temp path outside the repo and a relative path, and the selftest fails
+if either stops returning checks. Verified after the fix: the guide's §2 test, run with one word
+altered inside a quoted feedback note, fails `GROUNDING`, names the quote, exits 1.
+
+**Provenance, stated because it weakens the finding:** this defect was found *and* fixed inside
+the cold gate, by the same session. The regression step exists so the fix does not rest on that
+session's word.
+
+---
+
+## CLAIM-1 — the generated claim credited every run with a gate no run runs
+
+**Found by the cold gate, 2026-08-18.** `status.json` published "5 of 5 recorded runs pass all
+10 gates in checks/verify.py." The verifier runs **9** gates per run; `SURFACES` is checked once
+for the repository. `46 = 5 × 9 + 1` confirms it. No run passes 10 gates.
+
+This is the one artifact in the build required to be exactly true, since every other surface is
+a mirror of it.
+
+**Closed at:** `code`, 2026-08-18. The `SURFACES` registry entry now carries `"scope": "repo"`,
+`render_claim()` reports per-run and repo-level counts separately from that data rather than
+from a hardcoded name, and the claim reads "all 9 per-run gates (+1 repo-level)". Re-synced to
+all three surfaces.
+
+---
+
+## CLAIM-2 — a status field was named for something it does not count
+
+**Found by the cold gate, 2026-08-18.** `status.json` carried `gates_uncovered: 4` while
+`--selftest` printed `10/10 gates covered`. Both were correct and they read as a contradiction:
+the four are *requirements in rules.md with no executable gate*, correctly enumerated in
+`runs/gate-coverage.txt`, not gates missing a fixture. Every gate has a fixture.
+
+A field name is a claim. This one asserted a coverage hole that does not exist.
+
+**Closed at:** `code`, 2026-08-18. Renamed `requirements_uncovered`, matching the section it is
+computed from.

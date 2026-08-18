@@ -32,8 +32,10 @@ Standard library only. No network. No API key. Python 3.8+.
 
 import argparse
 import json
+import os
 import re
 import sys
+import tempfile
 import unicodedata
 from pathlib import Path
 
@@ -192,6 +194,9 @@ GATES = [
         "source": "status.json",
         "anchor": "_generated_by",
         "fixture": "(built-in) status.json version drift",
+        # Checked once for the repository, not once per run. The published claim
+        # has to say "per-run" or it credits every run with a gate no run runs.
+        "scope": "repo",
     },
     {
         "id": "CONFIDENCE",
@@ -626,8 +631,24 @@ def check_confidence(r, secs):
     r.add("CONFIDENCE", not problems, "\n".join(problems))
 
 
+def display_path(path):
+    """Label a transcript for the report.
+
+    --file exists so a judge can point this at their own transcript, which means
+    the path is routinely outside the repo or written relative to the shell's
+    cwd. relative_to() raises ValueError on both, and that exception used to
+    escape as a traceback with exit 1 — the same exit code a failing gate
+    returns, so the crash was readable as the gate working. A label is
+    cosmetic; it must never be able to stop a verdict being reached.
+    """
+    try:
+        return str(Path(path).resolve().relative_to(ROOT))
+    except ValueError:
+        return str(path)
+
+
 def verify_transcript(path, label=None):
-    r = Result(label or str(Path(path).relative_to(ROOT)))
+    r = Result(label or display_path(path))
     try:
         user_text, assistant_text = parse_transcript(path)
     except ValueError as exc:
@@ -766,10 +787,40 @@ def selftest():
     else:
         print("  %sXX%s  status.json missing" % (RED, RESET))
 
+    # Judge path — JUDGE_GUIDE tells a reader to copy a transcript to /tmp, alter
+    # it, and run --file on it. That call used to raise ValueError out of a path
+    # label and exit 1, which is the same exit code a failing gate returns, so the
+    # crash read as the gate working. The guide's own instruction has to reach a
+    # verdict from outside the repo and from a relative path.
+    print("\n%sJudge path%s %s- --file must reach a verdict from outside the repo%s"
+          % (BOLD, RESET, DIM, RESET))
+    path_ok = False
+    try:
+        sample = next(iter(discover_runs())) / "transcript.md"
+        with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False) as fh:
+            fh.write(sample.read_text(encoding="utf-8"))
+            outside = fh.name
+        outside_r = verify_transcript(outside)
+        rel = os.path.relpath(sample, os.getcwd())
+        rel_r = verify_transcript(rel)
+        os.unlink(outside)
+        path_ok = bool(outside_r.checks) and bool(rel_r.checks)
+        if path_ok:
+            print("  %sok%s  verdict reached from a temp path and a relative path"
+                  % (GREEN, RESET))
+            print("        %sA label is cosmetic and must never stop a verdict being "
+                  "reached; a crash that exits 1 is indistinguishable from a gate "
+                  "that fired.%s" % (DIM, RESET))
+        else:
+            print("  %sXX%s  --file returned no checks" % (RED, RESET))
+    except Exception as exc:
+        print("  %sXX%s  --file raised %s: %s" % (RED, RESET, type(exc).__name__, exc))
+
     missing_cover = [g["id"] for g in GATES if g["id"] not in covered]
 
     print("\n%s%s%s" % (BOLD, "-" * 66, RESET))
-    ok = (not drift) and pos_ok and drift_ok and caught == len(entries) and not missing_cover
+    ok = ((not drift) and pos_ok and drift_ok and path_ok
+           and caught == len(entries) and not missing_cover)
     if missing_cover:
         print("%sUNCOVERED%s  no negative fixture for: %s"
               % (RED, RESET, ", ".join(missing_cover)))
@@ -827,7 +878,13 @@ def compute_status():
         "ids": [d.name for d in discover_runs()],
     }
     doc["gates"] = len(GATES)
-    doc["gates_uncovered"] = len(UNCOVERED)
+    doc["gates_per_run"] = sum(1 for g in GATES if g.get("scope") != "repo")
+    doc["gates_repo_level"] = sum(1 for g in GATES if g.get("scope") == "repo")
+    # Named for what it counts. These are requirements in rules.md with no
+    # executable gate, not gates that are missing a fixture — every gate has one.
+    # The old key was "gates_uncovered", which read as a contradiction beside the
+    # selftest's "10/10 gates covered" and was a false claim about our own coverage.
+    doc["requirements_uncovered"] = len(UNCOVERED)
 
     defects = ROOT / "OPEN-DEFECTS.md"
     entries, closed = [], 0
@@ -849,10 +906,11 @@ def render_claim(doc):
     rv = doc.get("reverified_since_last_rule_change")
     rv_txt = ("re-run against the folder that ships" if rv
               else "NOT re-run since the last rule change")
-    return ("v%s · %s of %s recorded runs pass all %s gates in checks/verify.py · "
-            "%s open defects, listed in OPEN-DEFECTS.md · %s"
+    return ("v%s · %s of %s recorded runs pass all %s per-run gates in checks/verify.py "
+            "(+%s repo-level) · %s open defects, listed in OPEN-DEFECTS.md · %s"
             % (doc.get("version"), r.get("passed"), r.get("total"),
-               doc.get("gates"), doc.get("open_defects"), rv_txt))
+               doc.get("gates_per_run"), doc.get("gates_repo_level"),
+               doc.get("open_defects"), rv_txt))
 
 
 def write_status():
