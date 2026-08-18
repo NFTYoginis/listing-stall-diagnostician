@@ -1,6 +1,17 @@
 # Listing Stall Diagnostician
 
-**v0.7** · Status: built, and exercised by **three blind runs across three cases.** All three reached their keyed constraint; three defects found, none in `rules.md`, all corrected. No retrospective field validation — the cases are constructed, not client files.
+**v0.7** · Status: **three blind runs across three cases**, each run in a session that had never
+seen this folder and was forbidden from opening the answer keys, each scored line by line against
+assertions written before the run. All three reached their keyed constraint; that pass found three
+defects — two answer keys and one fixture — all corrected. No retrospective field validation — the
+cases are constructed, not client files.
+
+**Read those run scores with one caveat.** A later pass, which asked runs to report
+rule-versus-example divergences, found a routing defect in `rules.md` itself: Step 1 could
+terminate and skip the funnel the output contract requires. An earlier version of this line said
+the runs had found no defect in `rules.md`. That was true when it was written and false within a
+day. The runs passed because they did not follow the terminating instruction, not because it was
+sound. It is fixed, and the folder that scored has not been re-run as the folder that now ships.
 
 A folder you drop into a Claude Project. Claude becomes a diagnostician that works out
 why a specific listing has not sold.

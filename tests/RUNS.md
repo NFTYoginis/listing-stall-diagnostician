@@ -1,6 +1,8 @@
 # Run record
 
-3 blind runs, 3 cases. All three reached their keyed constraint. **3 defects found, none in `rules.md`** — two answer keys wrong (a keyed cause its own fixture refuted; a confidence grade above the binding cap) and one fixture with logically impossible dates. All corrected.
+3 blind runs, 3 cases. All three reached their keyed constraint. That pass found **3 defects** — two answer keys wrong (a keyed cause its own fixture refuted; a confidence grade above the binding cap) and one fixture with logically impossible dates. All corrected.
+
+**An earlier version of this line said none of them were in `rules.md`.** That was true when it was written and false within a day. A later pass found a routing defect in `rules.md` itself, described below.
 
 ## How these were run
 

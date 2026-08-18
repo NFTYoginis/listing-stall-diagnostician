@@ -68,11 +68,16 @@ Compare the subject's days on market against the comparison set's distribution.
 - Subject DOM inside the comp range → **no failure demonstrated.** The null is your likely
   finding.
 
-  **Do not stop here.** This screen is coarse. The output contract requires a funnel
-  reconstruction and a demoted-alternatives section, and neither can be written from this screen
-  alone — so run Steps 2 through 6 regardless, and let the null be what the funnel confirms rather
-  than what the screen asserted. A screen that terminates cannot be corrected by anything
-  downstream of it, which is the whole reason the downstream exists.
+  **Do not stop here, and do not go straight to Step 5.** Days on market is a single summary
+  number, and this screen reads it against one range. The output contract requires a funnel
+  reconstruction and a demoted-alternatives section, and neither can be written from that.
+  Step 5's evidence for the null is a conjunction whose central clause — the subject's
+  per-stage funnel numbers tracking the comp baseline *at every stage* — cannot be checked
+  without the funnel that Steps 2 through 4 build. A listing can sit at an ordinary DOM and
+  still be breaking at second showings, and that break is invisible from here.
+
+  Run Steps 2 through 6 regardless. A screen that terminates cannot be corrected by anything
+  downstream, which is what the downstream is for.
 - Subject DOM at or beyond the top of the comp range → a real failure. Continue.
 - Comp set DOM has also climbed relative to prior periods → hold this. It is the
   strongest null signal and you will test it properly at Step 5.
